@@ -21,9 +21,9 @@ StayPut-only build log. APIs browsed, fixtures used, test results, deploy hashes
 
 | Item | Value |
 |------|-------|
-| StudioNet RPC | https://studio.genlayer.com/api |
-| Chain ID | 61999 |
-| Explorer | https://explorer-studio.genlayer.com |
+| Studio-dev RPC | https://studio-dev.genlayer.com/api |
+| Chain ID | 61997 |
+| Explorer | https://explorer-studio.genlayer.com/?chain=studio-devnet |
 
 ---
 
@@ -35,38 +35,38 @@ StayPut-only build log. APIs browsed, fixtures used, test results, deploy hashes
 | API research | OK | Browsed live docs above |
 | stayput.py | OK | 594 lines — constructor, fund, cancel, resolve, expire, withdraw, views |
 | genvm-lint | OK | No errors |
-| Direct tests | OK | 27/27 passed |
-| StudioNet deploy | OK | 0xD41Aff4Cf8e5D703F7103d782b2f60Ad8A34da20 |
+| Direct tests | OK | 34/34 passed |
+| Studio-dev deploy | OK | 0x3C2d872e35003f009960B5b481DE6bB9853b2a5B |
 | README | OK | Full rewrite with verified explorer links |
 | GitHub push | OK | https://github.com/edwarderlick/stayput |
 
 ---
 
-## Deploy Receipt (StudioNet, 2026-09-07)
+## Deploy Receipt (Studio-dev, 2026-09-14)
 
 | Field | Value |
 |-------|-------|
-| Contract | 0xD41Aff4Cf8e5D703F7103d782b2f60Ad8A34da20 |
-| Deploy tx | 0x95c41f5cba009b76024e0b1d15193db80a3e2800fa903494b456a786e57b88a9 |
-| Deployer | 0x5C1eeD6995A0b50A061F23dD9fBcdf684Dd52f5C |
+| Contract | 0x3C2d872e35003f009960B5b481DE6bB9853b2a5B |
+| Deploy tx | 0xa17721c9ec2f8540f7172aa4beb71b1156ed6eed7d49aef9fddada7d30448fa6 |
+| Deployer | 0x9CE8B4b8A355421f01779Ebd0c49e22A8F1FF0DD |
 | Buyer (smoke) | 0x000000000000000000000000000000000000dEaD |
 | Consensus | 5/5 validators AGREE |
-| Explorer link | https://explorer-studio.genlayer.com/address/0xD41Aff4Cf8e5D703F7103d782b2f60Ad8A34da20 |
-| TX link | https://explorer-studio.genlayer.com/tx/0x95c41f5cba009b76024e0b1d15193db80a3e2800fa903494b456a786e57b88a9 |
+| Explorer link | https://explorer-studio.genlayer.com/address/0x3C2d872e35003f009960B5b481DE6bB9853b2a5B?chain=studio-devnet |
+| TX link | https://explorer-studio.genlayer.com/tx/0xa17721c9ec2f8540f7172aa4beb71b1156ed6eed7d49aef9fddada7d30448fa6?chain=studio-devnet |
 
 > Smoke deploy uses 0xdEaD as buyer (satisfies buyer != seller). Escrow not funded. For a real
 > hold, deploy fresh with an actual buyer EOA and call fund_escrow().
 
 ---
 
-## Direct Test Results (2026-09-07)
+## Direct Test Results (2026-09-14)
 
 ```
 pytest test/test_stayput_direct.py -v
-27 passed in 2.03s
+34 passed in ~2.00s
 ```
 
-### Test cases (27 total)
+### Test cases (34 total)
 
 | Class | Tests |
 |-------|-------|
