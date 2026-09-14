@@ -1,10 +1,10 @@
-﻿{
-    "contract_address":  "0xD41Aff4Cf8e5D703F7103d782b2f60Ad8A34da20",
-    "explorer":  "https://explorer-studio.genlayer.com/address/0xD41Aff4Cf8e5D703F7103d782b2f60Ad8A34da20",
-    "deployer":  "0x5C1eeD6995A0b50A061F23dD9fBcdf684Dd52f5C",
-    "chain_id":  61999,
-    "buyer_smoke":  "0x000000000000000000000000000000000000dEaD",
-    "note":  "Smoke deploy only - buyer is the dead address. For a real hold, deploy fresh with the actual buyer address and call fund_escrow().",
-    "deploy_tx":  "0x95c41f5cba009b76024e0b1d15193db80a3e2800fa903494b456a786e57b88a9",
-    "network":  "studionet"
+{
+  "contract_address": "0x3C2d872e35003f009960B5b481DE6bB9853b2a5B",
+  "deploy_tx": "0xa17721c9ec2f8540f7172aa4beb71b1156ed6eed7d49aef9fddada7d30448fa6",
+  "deployer": "0x9CE8B4b8A355421f01779Ebd0c49e22A8F1FF0DD",
+  "buyer_smoke": "0x000000000000000000000000000000000000dEaD",
+  "network": "studio_devnet",
+  "chain_id": 61997,
+  "explorer": "https://explorer-studio.genlayer.com/address/0x3C2d872e35003f009960B5b481DE6bB9853b2a5B",
+  "note": "Smoke deploy only \u00e2\u20ac\u201d buyer is the dead address. For a real hold, deploy fresh with the actual buyer address and call fund_escrow()."
 }

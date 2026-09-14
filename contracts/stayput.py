@@ -1,4 +1,4 @@
-# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
 
 """
 StayPut — Live-page hold escrow (Intelligent Contract)
@@ -24,6 +24,7 @@ from __future__ import annotations
 import datetime
 import json
 import re
+import genlayer as gl
 from genlayer import *
 
 # ---------------------------------------------------------------------------
@@ -69,7 +70,7 @@ _ERROR_PATTERNS = re.compile(
 # ---------------------------------------------------------------------------
 
 def _now() -> int:
-    raw = gl.message_raw["datetime"]
+    raw = gl.message.raw["datetime"]
     dt = datetime.datetime.fromisoformat(raw.replace("Z", "+00:00"))
     return int(dt.timestamp())
 
@@ -78,7 +79,7 @@ def _now() -> int:
 # Helper: safe emit_transfer to an EOA
 # ---------------------------------------------------------------------------
 
-def _safe_pay(addr: str, amount: u256, credits: TreeMap[str, u256]) -> None:
+def _safe_pay(addr: str, amount: u256, credits: gl.storage.TreeMap[str, u256]) -> None:
     """Try to emit_transfer to EOA; on failure credit the address."""
     if amount == u256(0):
         return
@@ -201,7 +202,7 @@ MARKER_BUYER    = "REFUNDED_BUYER"
 # The Contract
 # ---------------------------------------------------------------------------
 
-class StayPut(gl.Contract):
+class StayPut(gl.contract.Contract):
     """Live-page hold escrow.
 
     One hold per deployment. Seller deploys; buyer funds; validators resolve.
@@ -225,9 +226,11 @@ class StayPut(gl.Contract):
     fund_ts: u256           # unix seconds when escrow was funded
     hold_until_ts: u256     # fund_ts + hold_seconds
     resolve_deadline_ts: u256  # hold_until_ts + resolve_window_seconds
+    frozen_snapshot: str       # exact body captured at fund
+    frozen_snapshot_hash: str  # sha256 hex of that body
 
     # ---- Credits fallback (for failed emit_transfer) ----------------------
-    credits: TreeMap[str, u256]
+    credits: gl.storage.TreeMap[str, u256]
 
     # -----------------------------------------------------------------------
     # Constructor (NOT payable — two-step: deploy → fund_escrow)
@@ -301,6 +304,8 @@ class StayPut(gl.Contract):
         self.fund_ts = u256(0)
         self.hold_until_ts = u256(0)
         self.resolve_deadline_ts = u256(0)
+        self.frozen_snapshot = ""
+        self.frozen_snapshot_hash = ""
 
     # -----------------------------------------------------------------------
     # fund_escrow — buyer sends GEN to lock the escrow
@@ -319,6 +324,33 @@ class StayPut(gl.Contract):
         value = gl.message.value
         if value == u256(0):
             raise gl.vm.UserError("value must be > 0")
+
+        # --- Nondet Snapshot Fetch -----------------------------------------
+        snap_url = self.snapshot_url
+        
+        def _leader() -> str:
+            try:
+                return _fetch_page(snap_url)
+            except Exception:
+                return ""
+                
+        def _validator(leader_result) -> bool:
+            if not isinstance(leader_result, gl.vm.Return):
+                return False
+            leader_body = str(leader_result.calldata)
+            try:
+                my_body = _fetch_page(snap_url)
+            except Exception:
+                return leader_body == ""
+            return my_body == leader_body
+
+        agreed_snap = gl.vm.run_nondet(_leader, _validator)
+        if not agreed_snap:
+            raise gl.vm.UserError("failed to fetch snapshot or snapshot was empty")
+            
+        import hashlib
+        self.frozen_snapshot = str(agreed_snap)
+        self.frozen_snapshot_hash = hashlib.sha256(self.frozen_snapshot.encode("utf-8")).hexdigest()
 
         now = u256(_now())
         self.deposit_wei = value
@@ -390,32 +422,31 @@ class StayPut(gl.Contract):
             raise gl.vm.UserError(
                 "hold period has not elapsed yet"
             )
+        if now >= int(self.resolve_deadline_ts):
+            raise gl.vm.UserError(
+                "resolve deadline has passed; seller cannot be paid; use expire() to refund buyer"
+            )
+        if not self.frozen_snapshot:
+            raise gl.vm.UserError("snapshot was not frozen at fund")
+
         # Revalidate URLs are still https (should always pass; belt-and-suspenders)
-        _validate_url(self.snapshot_url, "snapshot_url")
         _validate_url(self.live_url, "live_url")
 
         # Capture locals for closure (no self inside nondet blocks)
-        snap_url = self.snapshot_url
+        snap = self.frozen_snapshot
         live_url = self.live_url
         rubric = self.material_rubric
 
         # --- Leader --------------------------------------------------------
         def _leader() -> str:
-            try:
-                snap = _fetch_page(snap_url)
-                live = _fetch_page(live_url)
-            except Exception:
-                return "FETCH_FAILED"
+            live = _fetch_page(live_url)
 
             prompt = _PROMPT_TEMPLATE.format(
                 rubric=rubric,
                 snap=snap,
                 live=live,
             )
-            try:
-                raw = gl.nondet.exec_prompt(prompt, response_format="json")
-            except Exception:
-                return "FETCH_FAILED"
+            raw = gl.nondet.exec_prompt(prompt, response_format="json")
             return _sanitise_verdict(raw)
 
         # --- Validator -------------------------------------------------------
@@ -424,28 +455,20 @@ class StayPut(gl.Contract):
                 return False
             leader_verdict = _sanitise_verdict(leader_result.calldata)
 
-            try:
-                snap = _fetch_page(snap_url)
-                live = _fetch_page(live_url)
-            except Exception:
-                # My fetch failed; leader said FETCH_FAILED → agree
-                return leader_verdict == "FETCH_FAILED"
+            live = _fetch_page(live_url)
 
             prompt = _PROMPT_TEMPLATE.format(
                 rubric=rubric,
                 snap=snap,
                 live=live,
             )
-            try:
-                raw = gl.nondet.exec_prompt(prompt, response_format="json")
-            except Exception:
-                return leader_verdict == "FETCH_FAILED"
+            raw = gl.nondet.exec_prompt(prompt, response_format="json")
 
             my_verdict = _sanitise_verdict(raw)
             return my_verdict == leader_verdict
 
         # --- Run nondet block -----------------------------------------------
-        agreed_verdict = gl.vm.run_nondet_unsafe(_leader, _validator)
+        agreed_verdict = gl.vm.run_nondet(_leader, _validator)
         final_verdict = _sanitise_verdict(agreed_verdict)
 
         # --- Settle (deterministic, after consensus) ------------------------
@@ -523,6 +546,9 @@ class StayPut(gl.Contract):
             "fund_ts": int(self.fund_ts),
             "hold_until_ts": int(self.hold_until_ts),
             "resolve_deadline_ts": int(self.resolve_deadline_ts),
+            "frozen_snapshot": self.frozen_snapshot,
+            "frozen_snapshot_hash": self.frozen_snapshot_hash,
+            "snapshot_frozen": len(self.frozen_snapshot) > 0,
         }
 
     @gl.public.view

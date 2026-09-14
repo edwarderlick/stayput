@@ -97,17 +97,17 @@ The **constructor rubric is authoritative for that hold**. Parties agree in writ
 
 ---
 
-## StudioNet
+## Studio-dev
 
 | Field | Value |
 |-------|-------|
-| Network | StudioNet |
-| RPC | `https://studio.genlayer.com/api` |
-| Chain ID | 61999 |
-| Explorer | [explorer-studio.genlayer.com](https://explorer-studio.genlayer.com) |
-| Studio | [studio.genlayer.com](https://studio.genlayer.com) |
-| Contract | [0xD41Aff4Cf8e5D703F7103d782b2f60Ad8A34da20](https://explorer-studio.genlayer.com/address/0xD41Aff4Cf8e5D703F7103d782b2f60Ad8A34da20) |
-| Deploy tx | [0x95c41f5c…e57b88a9](https://explorer-studio.genlayer.com/tx/0x95c41f5cba009b76024e0b1d15193db80a3e2800fa903494b456a786e57b88a9) |
+| Network | Studio-dev |
+| RPC | `https://studio-dev.genlayer.com/api` |
+| Chain ID | 61997 |
+| Explorer | [explorer-studio.genlayer.com](https://explorer-studio.genlayer.com/?chain=studio-devnet) |
+| Studio | [studio-dev.genlayer.com](https://studio-dev.genlayer.com) |
+| Contract | [0x3C2d872e35003f009960B5b481DE6bB9853b2a5B](https://explorer-studio.genlayer.com/address/0x3C2d872e35003f009960B5b481DE6bB9853b2a5B) |
+| Deploy tx | [0xa17721c9...d30448fa6](https://explorer-studio.genlayer.com/tx/0xa17721c9ec2f8540f7172aa4beb71b1156ed6eed7d49aef9fddada7d30448fa6) |
 | Consensus | 5 / 5 validators AGREE on deploy |
 | Resolve tx | Not run live — lifecycle proven in 27 direct tests (see below) |
 | Second resolve | Not run live — revert proven in `TestDoubleResolve` direct test |

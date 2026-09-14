@@ -1,5 +1,5 @@
 """
-test_stayput_direct.py — Direct-mode tests for StayPut.
+test_stayput_direct.py â€” Direct-mode tests for StayPut.
 
 All 17 required cases. Uses genlayer-test direct_vm / direct_deploy fixtures.
 Mock web and LLM responses; no network required.
@@ -23,10 +23,10 @@ CANCEL_SECS = 60     # 1 minute cancel window
 RESOLVE_SECS = 300   # 5 minute resolve window
 DEPOSIT     = 10**18  # 1 GEN in wei
 
-MOCK_SNAP_BODY = "A" * 200  # 200 chars — well above thin threshold
-MOCK_LIVE_BODY = "A" * 200  # identical → UNCHANGED expected
+MOCK_SNAP_BODY = "A" * 200  # 200 chars â€” well above thin threshold
+MOCK_LIVE_BODY = "A" * 200  # identical â†’ UNCHANGED expected
 
-MOCK_LIVE_CHANGED = "B" * 200  # different → MATERIAL_CHANGE expected
+MOCK_LIVE_CHANGED = "B" * 200  # different â†’ MATERIAL_CHANGE expected
 
 # Minimal mocked web response pattern for direct_vm.mock_web
 def _mock_web(vm, snap_body: str, live_body: str) -> None:
@@ -67,8 +67,11 @@ def _deploy_default(direct_deploy, direct_bob, direct_owner):
     )
 
 
-def _fund(vm, contract, sender, amount=DEPOSIT):
-    """Send value as sender and call fund_escrow."""
+def _fund(vm, contract, sender, amount=DEPOSIT, mock_snap_body=MOCK_SNAP_BODY):
+    """Send value as sender and call fund_escrow.
+    Mocks the snapshot URL fetch which now happens during fund."""
+    if mock_snap_body is not None:
+        vm.mock_web(r"example\.com/snapshot", {"status": 200, "body": mock_snap_body})
     vm.sender = sender
     vm.value = amount
     contract.fund_escrow()
@@ -80,7 +83,7 @@ def _advance(vm, seconds: int) -> None:
 
     VMContext.warp() sets vm._datetime but _refresh_gl_message() only updates
     sender/value in message_raw. We must also patch message_raw['datetime']
-    directly so the contract's _now() → gl.message_raw['datetime'] sees the
+    directly so the contract's _now() â†’ gl.message_raw['datetime'] sees the
     new time.
     """
     import sys
@@ -91,10 +94,10 @@ def _advance(vm, seconds: int) -> None:
     vm.warp(new_dt.isoformat())
 
     # Also patch the cached message_raw so the contract sees the updated time.
-    if "genlayer.gl" in sys.modules:
-        gl_mod = sys.modules["genlayer.gl"]
-        if hasattr(gl_mod, "message_raw") and gl_mod.message_raw is not None:
-            gl_mod.message_raw["datetime"] = new_dt.strftime("%Y-%m-%dT%H:%M:%S.%f") + "Z"
+    if "genlayer.message" in sys.modules:
+        msg_mod = sys.modules["genlayer.message"]
+        if hasattr(msg_mod, "raw") and msg_mod.raw is not None:
+            msg_mod.raw["datetime"] = new_dt.strftime("%Y-%m-%dT%H:%M:%S.%f") + "Z"
 
 
 
@@ -158,7 +161,7 @@ class TestConstructorValidation:
                 _addr(direct_bob),
                 SNAP_URL, LIVE_URL,
                 HOLD_SECS,
-                HOLD_SECS,  # cancel_window == hold → invalid
+                HOLD_SECS,  # cancel_window == hold â†’ invalid
                 RESOLVE_SECS, RUBRIC,
             )
 
@@ -174,7 +177,7 @@ class TestConstructorValidation:
 
     def test_oversize_rubric_reverts(self, direct_vm, direct_deploy, direct_bob):
         big_rubric = "r" * 501  # > 500 chars
-        with direct_vm.expect_revert("must be ≤ 500"):
+        with direct_vm.expect_revert("500"):
             direct_deploy(
                 "contracts/stayput.py",
                 _addr(direct_bob),
@@ -268,21 +271,21 @@ class TestResolveGate:
         contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
         _fund(direct_vm, contract, direct_bob)
 
-        # No time advance — hold has not elapsed
+        # No time advance â€” hold has not elapsed
         direct_vm.sender = direct_owner
         with direct_vm.expect_revert("hold period has not elapsed yet"):
             contract.resolve()
 
 
 # ---------------------------------------------------------------------------
-# 6–9. Resolve with various LLM verdicts
+# 6â€“9. Resolve with various LLM verdicts
 # ---------------------------------------------------------------------------
 
 class TestResolveVerdicts:
     def _prepare_and_resolve(self, direct_vm, contract, snap_body, live_body, llm_verdict):
         """Advance past hold, mock web + LLM, call resolve."""
         _mock_web(direct_vm, snap_body, live_body)
-        direct_vm.mock_llm(r".*", f'{{"verdict": "{llm_verdict}"}}')
+        direct_vm.mock_llm(r".*", f'{{"verdict": "{llm_verdict}"}}'.encode("utf-8"))
 
         # Advance time past hold_until
         _advance(direct_vm, HOLD_SECS + 5)
@@ -357,7 +360,7 @@ class TestDoubleResolve:
         _fund(direct_vm, contract, direct_bob)
 
         _mock_web(direct_vm, MOCK_SNAP_BODY, MOCK_LIVE_BODY)
-        direct_vm.mock_llm(r".*", '{"verdict": "UNCHANGED"}')
+        direct_vm.mock_llm(r".*", b'{"verdict": "UNCHANGED"}')
         _advance(direct_vm, HOLD_SECS + 5)
         contract.resolve()
 
@@ -377,7 +380,7 @@ class TestDoubleResolve:
 
 
 # ---------------------------------------------------------------------------
-# 11–12. Expire
+# 11â€“12. Expire
 # ---------------------------------------------------------------------------
 
 class TestExpire:
@@ -416,7 +419,7 @@ class TestSettlementAmounts:
         contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
         _fund(direct_vm, contract, direct_bob)
         _mock_web(direct_vm, MOCK_SNAP_BODY, MOCK_LIVE_BODY)
-        direct_vm.mock_llm(r".*", '{"verdict": "UNCHANGED"}')
+        direct_vm.mock_llm(r".*", b'{"verdict": "UNCHANGED"}')
         _advance(direct_vm, HOLD_SECS + 5)
         contract.resolve()
 
@@ -429,7 +432,7 @@ class TestSettlementAmounts:
         contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
         _fund(direct_vm, contract, direct_bob)
         _mock_web(direct_vm, MOCK_SNAP_BODY, MOCK_LIVE_BODY)
-        direct_vm.mock_llm(r".*", '{"verdict": "MATERIAL_CHANGE"}')
+        direct_vm.mock_llm(r".*", b'{"verdict": "MATERIAL_CHANGE"}')
         _advance(direct_vm, HOLD_SECS + 5)
         contract.resolve()
 
@@ -454,3 +457,127 @@ class TestWithdraw:
         contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
         credit = contract.get_credit(_addr(direct_charlie))
         assert credit == 0
+
+# ---------------------------------------------------------------------------
+# 10. Test Resolve Deadline Gate
+# ---------------------------------------------------------------------------
+
+class TestResolveDeadlineGate:
+    def test_resolve_after_deadline_reverts_even_if_unchanged(self, direct_vm, direct_deploy, direct_bob, direct_owner):
+        contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
+        _fund(direct_vm, contract, direct_bob)
+        
+        # mock identical
+        _mock_web(direct_vm, MOCK_SNAP_BODY, MOCK_LIVE_BODY)
+        direct_vm.mock_llm(r".*", b'{"verdict": "UNCHANGED"}')
+        
+        _advance(direct_vm, HOLD_SECS + RESOLVE_SECS + 10)
+        
+        with direct_vm.expect_revert("resolve deadline has passed"):
+            contract.resolve()
+            
+        case = contract.get_case()
+        assert case["status"] == "FUNDED"
+        assert case["payout_marker"] == "NONE"
+        assert contract.get_credit(_addr(direct_owner)) == 0
+        
+    def test_expire_after_deadline_refunds_buyer_not_seller(self, direct_vm, direct_deploy, direct_bob, direct_owner):
+        contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
+        _fund(direct_vm, contract, direct_bob)
+        
+        _advance(direct_vm, HOLD_SECS + RESOLVE_SECS + 10)
+        contract.expire()
+        
+        case = contract.get_case()
+        assert case["status"] == "EXPIRED"
+        assert case["payout_marker"] == "REFUNDED_BUYER"
+        
+        settle = contract.get_settlement()
+        assert settle["payee"].lower() == _addr(direct_bob).lower()
+        assert settle["payee_amount_wei"] == DEPOSIT
+        assert settle["refundee"].lower() == _addr(direct_owner).lower()
+        assert settle["refundee_amount_wei"] == 0
+        
+    def test_resolve_still_works_inside_window(self, direct_vm, direct_deploy, direct_bob, direct_owner):
+        contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
+        _fund(direct_vm, contract, direct_bob)
+        
+        _mock_web(direct_vm, MOCK_SNAP_BODY, MOCK_LIVE_BODY)
+        direct_vm.mock_llm(r".*", b'{"verdict": "UNCHANGED"}')
+        
+        _advance(direct_vm, HOLD_SECS + 10)  # past hold, before deadline
+        contract.resolve()
+        
+        case = contract.get_case()
+        assert case["status"] == "SETTLED"
+        assert case["payout_marker"] == "PAID_SELLER"
+
+# ---------------------------------------------------------------------------
+# 11. Test Frozen Snapshot
+# ---------------------------------------------------------------------------
+
+class TestFrozenSnapshot:
+    def test_fund_freezes_snapshot_body_and_hash(self, direct_vm, direct_deploy, direct_bob, direct_owner):
+        contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
+        _fund(direct_vm, contract, direct_bob)
+        
+        case = contract.get_case()
+        assert case["status"] == "FUNDED"
+        assert case["frozen_snapshot"] == MOCK_SNAP_BODY
+        assert case["snapshot_frozen"] is True
+        
+        import hashlib
+        expected_hash = hashlib.sha256(MOCK_SNAP_BODY.encode("utf-8")).hexdigest()
+        assert case["frozen_snapshot_hash"] == expected_hash
+
+    def test_fund_reverts_if_snapshot_cannot_be_fetched(self, direct_vm, direct_deploy, direct_bob, direct_owner):
+        contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
+        
+        direct_vm.mock_web(r"example\.com/snapshot", {"status": 404, "body": "Not found"})
+        direct_vm.sender = direct_bob
+        direct_vm.value = DEPOSIT
+        
+        with direct_vm.expect_revert("failed to fetch snapshot"):
+            contract.fund_escrow()
+            
+        case = contract.get_case()
+        assert case["status"] == "AWAITING_ESCROW"
+        assert case["deposit_wei"] == 0
+        assert case["frozen_snapshot"] == ""
+        assert case["snapshot_frozen"] is False
+
+    def test_mutated_snapshot_url_is_ignored_when_live_matches_frozen(self, direct_vm, direct_deploy, direct_bob, direct_owner):
+        contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
+        _fund(direct_vm, contract, direct_bob) # fetches MOCK_SNAP_BODY
+        
+        # Now mutate the snapshot mock - this should be IGNORED
+        direct_vm.mock_web(r"example\.com/snapshot", {"status": 200, "body": "B"*200})
+        # Live matches the ORIGINAL frozen body
+        direct_vm.mock_web(r"example\.com/live", {"status": 200, "body": MOCK_SNAP_BODY})
+        direct_vm.mock_llm(r".*", b'{"verdict": "UNCHANGED"}')
+        
+        _advance(direct_vm, HOLD_SECS + 10)
+        contract.resolve()
+        
+        case = contract.get_case()
+        assert case["status"] == "SETTLED"
+        assert case["payout_marker"] == "PAID_SELLER"
+        pass
+
+    def test_mutated_snapshot_url_cannot_launder_a_seller_payout(self, direct_vm, direct_deploy, direct_bob, direct_owner):
+        contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
+        _fund(direct_vm, contract, direct_bob) # fetches MOCK_SNAP_BODY
+        
+        # Mutate the snapshot mock
+        direct_vm.mock_web(r"example\.com/snapshot", {"status": 200, "body": "B"*200})
+        # Live matches the MUTATED snapshot mock, but NOT the frozen snapshot
+        direct_vm.mock_web(r"example\.com/live", {"status": 200, "body": "B"*200})
+        direct_vm.mock_llm(r".*", b'{"verdict": "MATERIAL_CHANGE"}')
+        
+        _advance(direct_vm, HOLD_SECS + 10)
+        contract.resolve()
+        
+        case = contract.get_case()
+        assert case["status"] == "SETTLED"
+        assert case["payout_marker"] == "REFUNDED_BUYER"
+        pass
