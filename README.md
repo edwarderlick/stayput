@@ -2,7 +2,7 @@
 
 Escrow that pays the seller if a live public page stays equivalent to an approved snapshot, and refunds the buyer if the page materially changes or cannot be fetched.
 
-Built on [GenLayer](https://genlayer.com) StudioNet. Uses test GEN. Not a court, judge, or legal ruling.
+Built on [GenLayer](https://genlayer.com) Studio-Devnet. Uses test GEN. Not a court, judge, or legal ruling.
 
 ---
 
@@ -109,7 +109,7 @@ The **constructor rubric is authoritative for that hold**. Parties agree in writ
 | Contract | [0x3385d9B1D1166A870C557BA1049b40C059c560eE](https://explorer-studio-dev.genlayer.com/address/0x3385d9B1D1166A870C557BA1049b40C059c560eE?chain=studio-devnet) |
 | Deploy tx | [0x376ef83721cf2f834c909b3c9482c6d52062943d4919707b0a76536ae47e6e2a](https://explorer-studio-dev.genlayer.com/transactions/0x376ef83721cf2f834c909b3c9482c6d52062943d4919707b0a76536ae47e6e2a?chain=studio-devnet) |
 | Consensus | 5 / 5 validators AGREE on deploy |
-| Resolve tx | Not run live - lifecycle proven in 27 direct tests (see below) |
+| Resolve tx | Not run live - lifecycle proven in 34 direct tests (see below) |
 | Second resolve | Not run live - revert proven in `TestDoubleResolve` direct test |
 
 > The smoke deploy used `0xdEaD` as buyer (buyer != seller constraint). For a real hold, deploy
@@ -155,13 +155,13 @@ pip install genlayer-test
 
 # Direct mode - fast, in-memory, no network required
 pytest test/test_stayput_direct.py -v
-# -> 27 passed
+# -> 34 passed
 
 # Integration mode - requires funded Studio-Devnet account
-gltest test/test_stayput_integration.py --network studionet -v -s
+gltest test/test_stayput_integration.py --network studio_devnet -v -s
 ```
 
-**Result:** `27 passed` - all constructor validations, fund, cancel, resolve (all 4 verdicts), double-resolve revert, expire, settlement amounts, and withdraw.
+**Result:** `34 passed` - all constructor validations, fund, cancel, resolve (all 4 verdicts), double-resolve revert, expire, settlement amounts, and withdraw.
 
 **Harness quirk (not a contract bug):** `VMContext.warp()` in gltest v0.29.2 updates `vm._datetime` but does not propagate the new timestamp into `gl.message_raw["datetime"]`. The `_advance()` helper in the test file patches `gl.message_raw["datetime"]` directly as a workaround.
 
@@ -181,9 +181,9 @@ gltest test/test_stayput_integration.py --network studionet -v -s
 
 ```
 contracts/stayput.py              Intelligent Contract
-test/test_stayput_direct.py       27 direct-mode unit tests
-test/test_stayput_integration.py  StudioNet integration tests
-scripts/deploy_stayput.py         Deploy script (StudioNet)
+test/test_stayput_direct.py       34 direct tests (mock network)
+test/test_stayput_integration.py  Studio-Devnet integration tests
+scripts/deploy_stayput.py         Deploy script (Studio-Devnet)
 deploy/receipt.json               On-chain deploy receipt
 gltest.config.yaml                Network config
 requirements.txt                  Python deps

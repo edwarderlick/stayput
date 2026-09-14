@@ -14,7 +14,7 @@ D:\StayPut
 │   └── stayput.py           # The Intelligent Contract (Python, GenVM)
 ├── test/
 │   ├── test_stayput_direct.py      # Direct-mode (in-memory) tests
-│   └── test_stayput_integration.py # StudioNet integration tests
+│   └── test_stayput_integration.py # Studio-Devnet integration tests
 ├── deploy/                  # Deploy artifacts and receipts
 ├── gltest.config.yaml       # genlayer-test network config
 ├── requirements.txt         # Python dependencies

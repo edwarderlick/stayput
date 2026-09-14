@@ -19,3 +19,4 @@ htmlcov/
 secrets/
 *.key
 *.pem
+keystore.json
