@@ -38,21 +38,22 @@ StayPut-only build log. APIs browsed, fixtures used, test results, deploy hashes
 | Direct tests | OK | 34/34 passed |
 | Studio-dev deploy | OK | 0x3C2d872e35003f009960B5b481DE6bB9853b2a5B |
 | README | OK | Full rewrite with verified explorer links |
+| Studio-dev deploy | OK | 0x1e080064845f404c0CB22D6ce3329c8C3Ba1d2BB |
+| Direct Tests | OK | 34 / 34 passed (mock network) |
 | GitHub push | OK | https://github.com/edwarderlick/stayput |
 
 ---
 
-## Deploy Receipt (Studio-dev, 2026-09-14)
+## Studio-Dev (61997) Smoke Deploy
 
-| Field | Value |
-|-------|-------|
-| Contract | 0x3C2d872e35003f009960B5b481DE6bB9853b2a5B |
-| Deploy tx | 0xa17721c9ec2f8540f7172aa4beb71b1156ed6eed7d49aef9fddada7d30448fa6 |
+| Detail | Value |
+|---|---|
+| Contract | 0x1e080064845f404c0CB22D6ce3329c8C3Ba1d2BB |
+| Deploy tx | 0xf596e68231080443dfe1ebe927ba60f4afbda1d12161edd9b1d1255620ee69bd |
 | Deployer | 0x9CE8B4b8A355421f01779Ebd0c49e22A8F1FF0DD |
 | Buyer (smoke) | 0x000000000000000000000000000000000000dEaD |
-| Consensus | 5/5 validators AGREE |
-| Explorer link | https://explorer-studio.genlayer.com/address/0x3C2d872e35003f009960B5b481DE6bB9853b2a5B?chain=studio-devnet |
-| TX link | https://explorer-studio.genlayer.com/tx/0xa17721c9ec2f8540f7172aa4beb71b1156ed6eed7d49aef9fddada7d30448fa6?chain=studio-devnet |
+| Explorer link | https://explorer-studio.genlayer.com/address/0x1e080064845f404c0CB22D6ce3329c8C3Ba1d2BB?chain=studio-devnet |
+| TX link | https://explorer-studio.genlayer.com/transactions/0xf596e68231080443dfe1ebe927ba60f4afbda1d12161edd9b1d1255620ee69bd?chain=studio-devnet |
 
 > Smoke deploy uses 0xdEaD as buyer (satisfies buyer != seller). Escrow not funded. For a real
 > hold, deploy fresh with an actual buyer EOA and call fund_escrow().

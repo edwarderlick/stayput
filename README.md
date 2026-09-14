@@ -106,8 +106,8 @@ The **constructor rubric is authoritative for that hold**. Parties agree in writ
 | Chain ID | 61997 |
 | Explorer | [explorer-studio.genlayer.com](https://explorer-studio.genlayer.com/?chain=studio-devnet) |
 | Studio | [studio-dev.genlayer.com](https://studio-dev.genlayer.com) |
-| Contract | [0x3C2d872e35003f009960B5b481DE6bB9853b2a5B](https://explorer-studio.genlayer.com/address/0x3C2d872e35003f009960B5b481DE6bB9853b2a5B) |
-| Deploy tx | [0xa17721c9...d30448fa6](https://explorer-studio.genlayer.com/tx/0xa17721c9ec2f8540f7172aa4beb71b1156ed6eed7d49aef9fddada7d30448fa6) |
+| Contract | [0x1e080064845f404c0CB22D6ce3329c8C3Ba1d2BB](https://explorer-studio.genlayer.com/address/0x1e080064845f404c0CB22D6ce3329c8C3Ba1d2BB?chain=studio-devnet) |
+| Deploy tx | [0xf596e68231080443dfe1ebe927ba60f4afbda1d12161edd9b1d1255620ee69bd](https://explorer-studio.genlayer.com/transactions/0xf596e68231080443dfe1ebe927ba60f4afbda1d12161edd9b1d1255620ee69bd?chain=studio-devnet) |
 | Consensus | 5 / 5 validators AGREE on deploy |
 | Resolve tx | Not run live — lifecycle proven in 27 direct tests (see below) |
 | Second resolve | Not run live — revert proven in `TestDoubleResolve` direct test |

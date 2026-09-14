@@ -3,35 +3,20 @@ deploy_stayput.py â€” Deploy StayPut to StudioNet and record the receipt.
 
 Usage (from repo root):
     gltest scripts/deploy_stayput.py --network studionet -v -s
-
-This script uses deploy_contract_tx() directly to avoid the schema-fetch
-fallback failure that can occur on StudioNet immediately after a fresh deploy.
-The deploy transaction IS committed; the contract address is recorded in
-deploy/receipt.json and verified on the explorer.
 """
 
 import json
-import time
 from pathlib import Path
-
-from gltest import get_contract_factory, get_default_account
-from gltest.assertions import tx_execution_succeeded, tx_execution_failed
+from gltest import get_contract_factory
+from gltest.assertions import tx_execution_failed
 
 RECEIPT_FILE = Path(__file__).parent.parent / "deploy" / "receipt.json"
 
-RUBRIC = (
-    "Price changes, eligibility criteria changes, feature removal, "
-    "sponsor disclosure changes, and CTA destination URL changes are material. "
-    "Navigation and footer changes are cosmetic."
-)
-
-# A distinct buyer address for the smoke-test deploy.
-# Buyer must differ from seller (the deployer account).
 SMOKE_BUYER = "0x000000000000000000000000000000000000dEaD"
-
 
 def deploy():
     import os
+    import time
     from eth_account import Account
     key = os.environ.get("PRIVATE_KEY", "6ebb8317ceba5a32eba62c9e113d8208f9357843e5bf382bb09e82621055ea8b")
     account = Account.from_key(key)
@@ -41,8 +26,6 @@ def deploy():
     print(f"[deploy] Buyer (smoke):     {SMOKE_BUYER}")
     print(f"[deploy] Sending deploy tx to StudioNet â€¦")
 
-    # Use deploy_contract_tx() so we get the raw receipt + address without
-    # requiring a follow-up schema fetch (which can transiently fail).
     receipt = factory.deploy_contract_tx(
         args=[SMOKE_BUYER, "https://example.com/snap", "https://example.com/live", 86400, 3600, 604800, "Must be substantially the same content."],
         account=account,
@@ -51,7 +34,7 @@ def deploy():
                 "leaderTimeunitsAllocation": 100,
                 "validatorTimeunitsAllocation": 200,
                 "appealRounds": 0,
-                "executionBudgetPerRound": 25000000000000000,
+                "executionBudgetPerRound": 100000000000000000,
                 "executionConsumed": 0,
                 "totalMessageFees": 0,
                 "rotations": [3],
@@ -60,7 +43,7 @@ def deploy():
                 "receiptFeeMaxGasPrice": 300000000
             }
         },
-        fee_value=100000000000010352,
+        fee_value=500000000000010352,
     )
 
     if tx_execution_failed(receipt):
@@ -73,6 +56,9 @@ def deploy():
     print(f"[deploy] Contract address: {contract_address}")
     print(f"[deploy] Status: ACCEPTED âœ“")
 
+    # Give it a small sleep to allow consensus to process
+    time.sleep(30)
+
     # Persist receipt
     RECEIPT_FILE.parent.mkdir(parents=True, exist_ok=True)
     output = {
@@ -82,7 +68,7 @@ def deploy():
         "buyer_smoke": SMOKE_BUYER,
         "network": "studio_devnet",
         "chain_id": 61997,
-        "explorer": f"https://explorer-studio.genlayer.com/address/{contract_address}",
+        "explorer": f"https://explorer-studio.genlayer.com/address/{contract_address}?chain=studio-devnet",
         "note": (
             "Smoke deploy only â€” buyer is the dead address. "
             "For a real hold, deploy fresh with the actual buyer address and call fund_escrow()."
@@ -93,7 +79,6 @@ def deploy():
     print(f"[deploy] Explorer: {output['explorer']}")
     print(f"[deploy] Done.")
     return contract_address
-
 
 def test_smoke_deploy():
     """pytest entry point â€” called by gltest."""
