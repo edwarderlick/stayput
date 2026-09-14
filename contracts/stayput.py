@@ -1,19 +1,19 @@
 # { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
 
 """
-StayPut — Live-page hold escrow (Intelligent Contract)
+StayPut - Live-page hold escrow (Intelligent Contract)
 
 Escrow that pays the seller if a live page stays equivalent to an approved
 snapshot, and refunds the buyer if it materially changes or cannot be fetched.
 
 State machine:
-    AWAITING_ESCROW → FUNDED → SETTLED | CANCELLED | EXPIRED
+    AWAITING_ESCROW -> FUNDED -> SETTLED | CANCELLED | EXPIRED
 
 Payout is 100% atomic (no splits, no averages):
-    UNCHANGED / COSMETIC     → seller gets deposit_wei
-    MATERIAL_CHANGE / FETCH_FAILED → buyer gets deposit_wei
+    UNCHANGED / COSMETIC     -> seller gets deposit_wei
+    MATERIAL_CHANGE / FETCH_FAILED -> buyer gets deposit_wei
 
-One payout_marker per deployment (NONE → PAID_SELLER or REFUNDED_BUYER).
+One payout_marker per deployment (NONE -> PAID_SELLER or REFUNDED_BUYER).
 A second resolve() call reverts. No retry_payout helper.
 
 Not a court. Not a bounty. Not a deliverable grader.
@@ -52,7 +52,7 @@ _CANCEL_MAX = 86_400        # 24 hours
 _RESOLVE_MIN = 60
 _RESOLVE_MAX = 2_592_000
 _PAGE_SLICE = 8000           # characters per side fed to the prompt
-_THIN_BODY = 40             # bodies shorter than this → FETCH_FAILED
+_THIN_BODY = 40             # bodies shorter than this -> FETCH_FAILED
 _VALID_VERDICTS = {"UNCHANGED", "COSMETIC", "MATERIAL_CHANGE", "FETCH_FAILED"}
 
 # Patterns that strongly suggest error / CAPTCHA / 404 pages
@@ -233,7 +233,7 @@ class StayPut(gl.contract.Contract):
     credits: gl.storage.TreeMap[str, u256]
 
     # -----------------------------------------------------------------------
-    # Constructor (NOT payable — two-step: deploy → fund_escrow)
+    # Constructor (NOT payable - two-step: deploy -> fund_escrow)
     # -----------------------------------------------------------------------
 
     def __init__(
@@ -264,11 +264,11 @@ class StayPut(gl.contract.Contract):
         # --- Validate time windows -----------------------------------------
         if hold_seconds < _HOLD_MIN or hold_seconds > _HOLD_MAX:
             raise gl.vm.UserError(
-                f"hold_seconds must be {_HOLD_MIN}–{_HOLD_MAX}"
+                f"hold_seconds must be {_HOLD_MIN}-{_HOLD_MAX}"
             )
         if cancel_window_seconds < 0 or cancel_window_seconds > _CANCEL_MAX:
             raise gl.vm.UserError(
-                f"cancel_window_seconds must be 0–{_CANCEL_MAX}"
+                f"cancel_window_seconds must be 0-{_CANCEL_MAX}"
             )
         if cancel_window_seconds >= hold_seconds:
             raise gl.vm.UserError(
@@ -276,7 +276,7 @@ class StayPut(gl.contract.Contract):
             )
         if resolve_window_seconds < _RESOLVE_MIN or resolve_window_seconds > _RESOLVE_MAX:
             raise gl.vm.UserError(
-                f"resolve_window_seconds must be {_RESOLVE_MIN}–{_RESOLVE_MAX}"
+                f"resolve_window_seconds must be {_RESOLVE_MIN}-{_RESOLVE_MAX}"
             )
 
         # --- Validate rubric -----------------------------------------------
@@ -284,7 +284,7 @@ class StayPut(gl.contract.Contract):
             raise gl.vm.UserError("material_rubric must not be empty")
         if len(material_rubric) > _RUBRIC_MAX:
             raise gl.vm.UserError(
-                f"material_rubric must be ≤ {_RUBRIC_MAX} characters"
+                f"material_rubric must be <= {_RUBRIC_MAX} characters"
             )
 
         # --- Persist -------------------------------------------------------
@@ -308,7 +308,7 @@ class StayPut(gl.contract.Contract):
         self.frozen_snapshot_hash = ""
 
     # -----------------------------------------------------------------------
-    # fund_escrow — buyer sends GEN to lock the escrow
+    # fund_escrow - buyer sends GEN to lock the escrow
     # -----------------------------------------------------------------------
 
     @gl.public.write.payable
@@ -360,7 +360,7 @@ class StayPut(gl.contract.Contract):
         self.status = STATUS_FUNDED
 
     # -----------------------------------------------------------------------
-    # cancel — seller (pre-fund) or buyer (within cancel window)
+    # cancel - seller (pre-fund) or buyer (within cancel window)
     # -----------------------------------------------------------------------
 
     @gl.public.write
@@ -402,7 +402,7 @@ class StayPut(gl.contract.Contract):
         )
 
     # -----------------------------------------------------------------------
-    # resolve — permissionless, post-hold, runs the nondet comparison
+    # resolve - permissionless, post-hold, runs the nondet comparison
     # -----------------------------------------------------------------------
 
     @gl.public.write
@@ -439,7 +439,10 @@ class StayPut(gl.contract.Contract):
 
         # --- Leader --------------------------------------------------------
         def _leader() -> str:
-            live = _fetch_page(live_url)
+            try:
+                live = _fetch_page(live_url)
+            except Exception:
+                return "FETCH_FAILED"
 
             prompt = _PROMPT_TEMPLATE.format(
                 rubric=rubric,
@@ -455,7 +458,20 @@ class StayPut(gl.contract.Contract):
                 return False
             leader_verdict = _sanitise_verdict(leader_result.calldata)
 
-            live = _fetch_page(live_url)
+            if leader_verdict == "FETCH_FAILED":
+                try:
+                    _fetch_page(live_url)
+                    # If I succeed but leader failed, we disagree
+                    return False
+                except Exception:
+                    # I also failed, so we agree
+                    return True
+
+            try:
+                live = _fetch_page(live_url)
+            except Exception:
+                # I failed but leader got a result, disagree
+                return False
 
             prompt = _PROMPT_TEMPLATE.format(
                 rubric=rubric,
@@ -480,13 +496,13 @@ class StayPut(gl.contract.Contract):
             self.status = STATUS_SETTLED
             _safe_pay(self.seller, deposit, self.credits)
         else:
-            # MATERIAL_CHANGE or FETCH_FAILED → refund buyer
+            # MATERIAL_CHANGE or FETCH_FAILED -> refund buyer
             self.payout_marker = MARKER_BUYER
             self.status = STATUS_SETTLED
             _safe_pay(self.buyer, deposit, self.credits)
 
     # -----------------------------------------------------------------------
-    # expire — stuck-fund exit if resolve window passes without a resolver
+    # expire - stuck-fund exit if resolve window passes without a resolver
     # -----------------------------------------------------------------------
 
     @gl.public.write
@@ -510,7 +526,7 @@ class StayPut(gl.contract.Contract):
         _safe_pay(self.buyer, self.deposit_wei, self.credits)
 
     # -----------------------------------------------------------------------
-    # withdraw — pull credits from failed emit_transfer
+    # withdraw - pull credits from failed emit_transfer
     # -----------------------------------------------------------------------
 
     @gl.public.write
@@ -615,5 +631,5 @@ def _validate_url(url: str, field_name: str) -> None:
         raise gl.vm.UserError(f"{field_name} must start with https://")
     if len(url) < _URL_MIN or len(url) > _URL_MAX:
         raise gl.vm.UserError(
-            f"{field_name} must be {_URL_MIN}–{_URL_MAX} characters; got {len(url)}"
+            f"{field_name} must be {_URL_MIN}-{_URL_MAX} characters; got {len(url)}"
         )

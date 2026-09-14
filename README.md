@@ -15,7 +15,7 @@ Seller deploys with:
 - a cancel window (how long the buyer may back out after funding),
 - a short material rubric (what counts as material for *this* hold).
 
-Buyer funds the escrow with GEN. After the hold elapses, anyone calls `resolve()`. Validators independently fetch both pages as plain text and agree on one enum:
+Buyer funds the escrow with GEN. At funding time, the contract fetches and freezes the reference snapshot. After the hold elapses, anyone calls `resolve()`. Validators independently fetch the live page as plain text, compare it against the frozen snapshot, and agree on one enum:
 
 ```
 UNCHANGED | COSMETIC | MATERIAL_CHANGE | FETCH_FAILED
@@ -27,9 +27,9 @@ The whole pot moves atomically from that verdict. The model never emits wei.
 
 ## What it is not
 
-- Not a bounty grader — there is no deliverable, no milestone.
-- Not a photo deposit — it compares live page text, not images.
-- Not an ad-disclosure checker — though you can write a rubric that makes ad changes material.
+- Not a bounty grader - there is no deliverable, no milestone.
+- Not a photo deposit - it compares live page text, not images.
+- Not an ad-disclosure checker - though you can write a rubric that makes ad changes material.
 
 ---
 
@@ -79,7 +79,7 @@ AWAITING_ESCROW ──fund_escrow()──► FUNDED ──resolve()──► SET
 | `FETCH_FAILED` | 0 | 100 % | `REFUNDED_BUYER` |
 | Buyer cancels in window | 0 | 100 % | `REFUNDED_BUYER` |
 | `expire()` after resolve window | 0 | 100 % | `REFUNDED_BUYER` |
-| Seller cancels (unfunded) | — | — | `NONE` |
+| Seller cancels (unfunded) | - | - | `NONE` |
 
 No splits. No averages. No retry payout. A second `resolve()` call reverts.
 
@@ -93,7 +93,7 @@ No splits. No averages. No retry payout. A second `resolve()` call reverts.
 
 The **constructor rubric is authoritative for that hold**. Parties agree in writing at deploy time what counts as material. Any instruction embedded in either page body is explicitly ignored by the prompt.
 
-`FETCH_FAILED` always refunds the buyer — a deleted or captcha-gated page cannot pay the seller.
+`FETCH_FAILED` always refunds the buyer - a deleted or captcha-gated page cannot pay the seller.
 
 ---
 
@@ -104,15 +104,15 @@ The **constructor rubric is authoritative for that hold**. Parties agree in writ
 | Network | Studio-dev |
 | RPC | `https://studio-dev.genlayer.com/api` |
 | Chain ID | 61997 |
-| Explorer | [explorer-studio.genlayer.com](https://explorer-studio.genlayer.com/?chain=studio-devnet) |
+| Explorer | [explorer-studio-dev.genlayer.com](https://explorer-studio-dev.genlayer.com/?chain=studio-devnet) |
 | Studio | [studio-dev.genlayer.com](https://studio-dev.genlayer.com) |
-| Contract | [0x1e080064845f404c0CB22D6ce3329c8C3Ba1d2BB](https://explorer-studio.genlayer.com/address/0x1e080064845f404c0CB22D6ce3329c8C3Ba1d2BB?chain=studio-devnet) |
-| Deploy tx | [0xf596e68231080443dfe1ebe927ba60f4afbda1d12161edd9b1d1255620ee69bd](https://explorer-studio.genlayer.com/transactions/0xf596e68231080443dfe1ebe927ba60f4afbda1d12161edd9b1d1255620ee69bd?chain=studio-devnet) |
+| Contract | [0x3385d9B1D1166A870C557BA1049b40C059c560eE](https://explorer-studio-dev.genlayer.com/address/0x3385d9B1D1166A870C557BA1049b40C059c560eE?chain=studio-devnet) |
+| Deploy tx | [0x376ef83721cf2f834c909b3c9482c6d52062943d4919707b0a76536ae47e6e2a](https://explorer-studio-dev.genlayer.com/transactions/0x376ef83721cf2f834c909b3c9482c6d52062943d4919707b0a76536ae47e6e2a?chain=studio-devnet) |
 | Consensus | 5 / 5 validators AGREE on deploy |
-| Resolve tx | Not run live — lifecycle proven in 27 direct tests (see below) |
-| Second resolve | Not run live — revert proven in `TestDoubleResolve` direct test |
+| Resolve tx | Not run live - lifecycle proven in 27 direct tests (see below) |
+| Second resolve | Not run live - revert proven in `TestDoubleResolve` direct test |
 
-> The smoke deploy used `0xdEaD` as buyer (buyer ≠ seller constraint). For a real hold, deploy
+> The smoke deploy used `0xdEaD` as buyer (buyer != seller constraint). For a real hold, deploy
 > fresh with an actual buyer EOA and call `fund_escrow()`.
 
 ---
@@ -133,7 +133,7 @@ All four verdicts are exercised via mocked LLM in the 27 direct tests.
 
 ## Two-step deploy
 
-The constructor is **not payable** — it only records configuration.
+The constructor is **not payable** - it only records configuration.
 
 ```python
 # Step 1: deploy (no value)
@@ -153,15 +153,15 @@ tx = contract.fund_escrow(args=[]).transact(value=deposit_wei, account=buyer_acc
 # Install
 pip install genlayer-test
 
-# Direct mode — fast, in-memory, no network required
+# Direct mode - fast, in-memory, no network required
 pytest test/test_stayput_direct.py -v
-# → 27 passed
+# -> 27 passed
 
-# Integration mode — requires funded StudioNet account
+# Integration mode - requires funded Studio-Devnet account
 gltest test/test_stayput_integration.py --network studionet -v -s
 ```
 
-**Result:** `27 passed` — all constructor validations, fund, cancel, resolve (all 4 verdicts), double-resolve revert, expire, settlement amounts, and withdraw.
+**Result:** `27 passed` - all constructor validations, fund, cancel, resolve (all 4 verdicts), double-resolve revert, expire, settlement amounts, and withdraw.
 
 **Harness quirk (not a contract bug):** `VMContext.warp()` in gltest v0.29.2 updates `vm._datetime` but does not propagate the new timestamp into `gl.message_raw["datetime"]`. The `_advance()` helper in the test file patches `gl.message_raw["datetime"]` directly as a workaround.
 
@@ -169,11 +169,11 @@ gltest test/test_stayput_integration.py --network studionet -v -s
 
 ## Limits
 
-- Test GEN only (StudioNet). No mainnet.
+- Test GEN only (Studio-Devnet). No mainnet.
 - Public HTTPS URLs only; text-mode fetch, up to 8 000 characters per side.
-- If `emit_transfer` to an EOA fails (e.g. IC→EOA transfer restriction), funds are credited to `credits[addr]` and claimable via `withdraw()`.
-- URL length: 12–256 characters. Rubric: ≤ 500 characters.
-- Hold: 60 s – 30 days. Cancel window: 0 – 24 h (must be < hold). Resolve window: 60 s – 30 days.
+- If `emit_transfer` to an EOA fails (e.g. IC->EOA transfer restriction), funds are credited to `credits[addr]` and claimable via `withdraw()`.
+- URL length: 12-256 characters. Rubric: <= 500 characters.
+- Hold: 60 s - 30 days. Cancel window: 0 - 24 h (must be < hold). Resolve window: 60 s - 30 days.
 
 ---
 

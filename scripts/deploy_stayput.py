@@ -1,8 +1,8 @@
 """
-deploy_stayput.py â€” Deploy StayPut to StudioNet and record the receipt.
+deploy_stayput.py - Deploy StayPut to Studio-Devnet and record the receipt.
 
 Usage (from repo root):
-    gltest scripts/deploy_stayput.py --network studionet -v -s
+    gltest scripts/deploy_stayput.py --network studio_devnet -v -s
 """
 
 import json
@@ -18,13 +18,15 @@ def deploy():
     import os
     import time
     from eth_account import Account
-    key = os.environ.get("PRIVATE_KEY", "6ebb8317ceba5a32eba62c9e113d8208f9357843e5bf382bb09e82621055ea8b")
+    key = os.environ.get("PRIVATE_KEY")
+    if not key:
+        raise ValueError("PRIVATE_KEY environment variable is not set")
     account = Account.from_key(key)
     factory = get_contract_factory("StayPut")
 
     print(f"[deploy] Seller / deployer: {account.address}")
     print(f"[deploy] Buyer (smoke):     {SMOKE_BUYER}")
-    print(f"[deploy] Sending deploy tx to StudioNet â€¦")
+    print(f"[deploy] Sending deploy tx to Studio-Devnet ...")
 
     receipt = factory.deploy_contract_tx(
         args=[SMOKE_BUYER, "https://example.com/snap", "https://example.com/live", 86400, 3600, 604800, "Must be substantially the same content."],
@@ -68,7 +70,7 @@ def deploy():
         "buyer_smoke": SMOKE_BUYER,
         "network": "studio_devnet",
         "chain_id": 61997,
-        "explorer": f"https://explorer-studio.genlayer.com/address/{contract_address}?chain=studio-devnet",
+        "explorer": f"https://explorer-studio-dev.genlayer.com/address/{contract_address}?chain=studio-devnet",
         "note": (
             "Smoke deploy only â€” buyer is the dead address. "
             "For a real hold, deploy fresh with the actual buyer address and call fund_escrow()."
