@@ -326,7 +326,9 @@ class StayPut(gl.contract.Contract):
             raise gl.vm.UserError("value must be > 0")
 
         # --- Nondet Snapshot Fetch -----------------------------------------
-        snap_url = self.snapshot_url
+        # IMPORTANT: storage-backed str objects must be converted to plain Python
+        # str before use inside run_nondet closures to avoid GenVM E106.
+        snap_url = str(self.snapshot_url)
         
         def _leader() -> str:
             try:
@@ -432,10 +434,12 @@ class StayPut(gl.contract.Contract):
         # Revalidate URLs are still https (should always pass; belt-and-suspenders)
         _validate_url(self.live_url, "live_url")
 
-        # Capture locals for closure (no self inside nondet blocks)
-        snap = self.frozen_snapshot
-        live_url = self.live_url
-        rubric = self.material_rubric
+        # Capture locals for closure (no self inside nondet blocks).
+        # IMPORTANT: storage-backed str objects must be converted to plain Python
+        # str before use inside run_nondet closures to avoid GenVM E106.
+        snap = str(self.frozen_snapshot)
+        live_url = str(self.live_url)
+        rubric = str(self.material_rubric)
 
         # --- Leader --------------------------------------------------------
         def _leader() -> str:

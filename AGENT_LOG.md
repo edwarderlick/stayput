@@ -33,17 +33,28 @@ StayPut-only build log. APIs browsed, fixtures used, test results, deploy hashes
 |------|--------|-------|
 | Repo tree | OK | contracts/, test/, scripts/, deploy/ |
 | API research | OK | Browsed live docs above |
-| stayput.py | OK | 594 lines - constructor, fund, cancel, resolve, expire, withdraw, views |
-| genvm-lint | OK | No errors |
+| stayput.py | OK | 636 lines - constructor, fund, cancel, resolve, expire, withdraw, views |
+| genvm-lint | OK | E106 fix applied - storage str fields coerced before nondet closures |
 | Direct tests | OK | 34/34 passed |
-| Studio-dev deploy | OK | 0x3385d9B1D1166A870C557BA1049b40C059c560eE |
+| Studio-dev deploy | OK | 0xC49BE22b71A430a1d3FBBFf1Eb880292D74ec1D1 |
 | README | OK | Full rewrite with verified explorer links |
 | Direct Tests | OK | 34 / 34 passed (mock network) |
 | GitHub push | OK | https://github.com/edwarderlick/stayput |
 
 ---
 
-## Studio-Dev (61997) Smoke Deploy
+## Studio-Dev (61997) Smoke Deploy v2 (E106-fixed)
+
+| Detail | Value |
+|---|---|
+| Contract | 0xC49BE22b71A430a1d3FBBFf1Eb880292D74ec1D1 |
+| Deploy tx | 0xc521671e2d587faf5dc383a5b725d829fe198be1437dec128c8ce0ad8a1ccb09 |
+| Deployer | 0xA1F567B94C5FA8b370C7040a194e8F4351242283 |
+| Buyer (smoke) | 0x000000000000000000000000000000000000dEaD |
+| Explorer link | https://explorer-studio-dev.genlayer.com/address/0xC49BE22b71A430a1d3FBBFf1Eb880292D74ec1D1?chain=studio-devnet |
+| TX link | https://explorer-studio-dev.genlayer.com/transactions/0xc521671e2d587faf5dc383a5b725d829fe198be1437dec128c8ce0ad8a1ccb09?chain=studio-devnet |
+
+## Studio-Dev (61997) Smoke Deploy v1 (superseded)
 
 | Detail | Value |
 |---|---|

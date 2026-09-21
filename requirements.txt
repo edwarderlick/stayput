@@ -1,1 +1,4 @@
-genlayer-test>=0.10.0
+genlayer-test>=0.30.0
+# NOTE: do NOT install the stub 'genlayer' PyPI package (v0.0.1).
+# It shadows the real GenVM SDK that genlayer-test ships and breaks direct tests.
+# If it is present, remove it: pip uninstall genlayer -y
