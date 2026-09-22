@@ -154,6 +154,8 @@ tx = contract.fund_escrow(args=[]).transact(value=deposit_wei, account=buyer_acc
 pip install genlayer-test
 
 # Direct mode - fast, in-memory, no network required
+# gltest validates all configured networks at startup, so set a placeholder:
+echo 'PRIVATE_KEY=0x0000000000000000000000000000000000000000000000000000000000000001' > .env
 pytest test/test_stayput_direct.py -v
 # -> 35 passed
 
