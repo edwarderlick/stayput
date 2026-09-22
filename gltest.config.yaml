@@ -8,7 +8,9 @@ networks:
   studio_devnet:
     url: "https://studio-dev.genlayer.com/api"
     id: 61997
-    chain_type: studio_devnet
+    chain_type: studionet
+    accounts:
+      - "${PRIVATE_KEY}"
 
 paths:
   contracts: "contracts"

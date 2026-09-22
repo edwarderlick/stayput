@@ -34,7 +34,7 @@ StayPut-only build log. APIs browsed, fixtures used, test results, deploy hashes
 | Repo tree | OK | contracts/, test/, scripts/, deploy/ |
 | API research | OK | Browsed live docs above |
 | stayput.py | OK | 636 lines - constructor, fund, cancel, resolve, expire, withdraw, views |
-| genvm-lint | OK | E106 fix applied - storage str fields coerced before nondet closures |
+| genvm-lint | OK | E106 fix applied - removed from __future__ import annotations |
 | Direct tests | OK | 35/35 passed |
 | Studio-dev deploy | OK | 0x6520D47f33cBeF8e00d6BF014b818bA730ADBdBd |
 | README | OK | Full rewrite with verified explorer links |

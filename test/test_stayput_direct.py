@@ -1,5 +1,5 @@
 """
-test_stayput_direct.py â€” Direct-mode tests for StayPut.
+test_stayput_direct.py — Direct-mode tests for StayPut.
 
 All 17 required cases. Uses genlayer-test direct_vm / direct_deploy fixtures.
 Mock web and LLM responses; no network required.
@@ -23,10 +23,10 @@ CANCEL_SECS = 60     # 1 minute cancel window
 RESOLVE_SECS = 300   # 5 minute resolve window
 DEPOSIT     = 10**18  # 1 GEN in wei
 
-MOCK_SNAP_BODY = "A" * 200  # 200 chars â€” well above thin threshold
-MOCK_LIVE_BODY = "A" * 200  # identical â†’ UNCHANGED expected
+MOCK_SNAP_BODY = "A" * 200  # 200 chars — well above thin threshold
+MOCK_LIVE_BODY = "A" * 200  # identical → UNCHANGED expected
 
-MOCK_LIVE_CHANGED = "B" * 200  # different â†’ MATERIAL_CHANGE expected
+MOCK_LIVE_CHANGED = "B" * 200  # different → MATERIAL_CHANGE expected
 
 # Minimal mocked web response pattern for direct_vm.mock_web
 def _mock_web(vm, snap_body: str, live_body: str) -> None:
@@ -77,7 +77,7 @@ def _advance(vm, seconds: int) -> None:
 
     VMContext.warp() sets vm._datetime but _refresh_gl_message() only updates
     sender/value in message_raw. We must also patch message_raw['datetime']
-    directly so the contract's _now() â†’ gl.message_raw['datetime'] sees the
+    directly so the contract's _now() → gl.message_raw['datetime'] sees the
     new time.
     """
     import sys
@@ -155,7 +155,7 @@ class TestConstructorValidation:
                 _addr(direct_bob),
                 SNAP_URL, LIVE_URL,
                 HOLD_SECS,
-                HOLD_SECS,  # cancel_window == hold â†’ invalid
+                HOLD_SECS,  # cancel_window == hold → invalid
                 RESOLVE_SECS, RUBRIC,
             )
 
@@ -265,14 +265,14 @@ class TestResolveGate:
         contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
         _fund(direct_vm, contract, direct_bob)
 
-        # No time advance â€” hold has not elapsed
+        # No time advance — hold has not elapsed
         direct_vm.sender = direct_owner
         with direct_vm.expect_revert("hold period has not elapsed yet"):
             contract.resolve()
 
 
 # ---------------------------------------------------------------------------
-# 6â€“9. Resolve with various LLM verdicts
+# 6–9. Resolve with various LLM verdicts
 # ---------------------------------------------------------------------------
 
 class TestResolveVerdicts:
@@ -374,7 +374,7 @@ class TestDoubleResolve:
 
 
 # ---------------------------------------------------------------------------
-# 11â€“12. Expire
+# 11–12. Expire
 # ---------------------------------------------------------------------------
 
 class TestExpire:

@@ -1,7 +1,7 @@
 """
-test_stayput_integration.py — StudioNet integration tests for StayPut.
+test_stayput_integration.py — Studio-Devnet integration tests for StayPut.
 
-These tests deploy to the live StudioNet (chain 61999) and exercise real
+These tests deploy to the live Studio-Devnet (chain 61997) and exercise real
 GenVM consensus + web rendering + LLM calls.
 
 Fixtures:
@@ -15,12 +15,12 @@ MATERIAL_CHANGE is proven in direct tests only because we cannot guarantee
 two production URLs that diverge in a stable, reproducible way.
 
 Run:
-    gltest test/test_stayput_integration.py --network studionet -v -s
+    gltest test/test_stayput_integration.py --network studio_devnet -v -s
 
 Requires:
-    - gltest.config.yaml with studionet entry
+    - gltest.config.yaml with studio_devnet entry
     - pip install genlayer-test
-    - Funded StudioNet account (built-in faucet at studio.genlayer.com)
+    - Funded Studio-Devnet account (built-in faucet at studio-dev.genlayer.com)
 
 NOTE on Windows / os.unlink: If gltest hits the os.unlink temp-file bug on
 Windows, run with --leader-only to skip multi-validator consensus for the deploy

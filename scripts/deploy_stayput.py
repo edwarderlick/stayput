@@ -56,7 +56,7 @@ def deploy():
     tx_hash = receipt["hash"]
     print(f"[deploy] Deploy tx:       {tx_hash}")
     print(f"[deploy] Contract address: {contract_address}")
-    print(f"[deploy] Status: ACCEPTED âœ“")
+    print(f"[deploy] Status: ACCEPTED ✓")
 
     # Give it a small sleep to allow consensus to process
     time.sleep(30)

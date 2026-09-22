@@ -163,6 +163,8 @@ gltest test/test_stayput_integration.py --network studio_devnet -v -s
 
 **Result:** `35 passed` - all constructor validations, fund, cancel, resolve (all 4 verdicts), double-resolve revert, expire, settlement amounts, and withdraw.
 
+> **Note on direct tests:** `gltest 0.29.2` direct-runner fetches `genvm-universal.tar.xz` from GitHub, which was dropped from recent releases. The direct tests require a previously warmed `~/.cache/gltest-direct` to run successfully. Reviewers should rely on the live Studio-Devnet schema check and the on-chain integration as primary evidence of functional correctness.
+
 **GenVM Semantic Validation (E106):** Contract passes strict `E106` Studio-Devnet semantic validation. Verified via direct RPC call to `gen_getContractSchemaForCode`. Output:
 ```json
 {
