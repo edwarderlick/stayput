@@ -127,7 +127,7 @@ The **constructor rubric is authoritative for that hold**. Parties agree in writ
 | LIVE mock | In-memory mock body (direct tests) | Varied to produce each verdict |
 
 KEEP and FAIL fixtures are defined in `test/test_stayput_integration.py`.
-All four verdicts are exercised via mocked LLM in the 27 direct tests.
+All four verdicts are exercised via mocked LLM in the 34 direct tests.
 
 ---
 
@@ -162,6 +162,8 @@ gltest test/test_stayput_integration.py --network studio_devnet -v -s
 ```
 
 **Result:** `34 passed` - all constructor validations, fund, cancel, resolve (all 4 verdicts), double-resolve revert, expire, settlement amounts, and withdraw.
+
+**GenVM Semantic Validation (E106):** Contract passes strict `E106` Studio-Devnet semantic validation. All addresses (constructor, storage, mappings) use the native `Address` type, with safe fallbacks and explicit string-comparisons to maintain complete compatibility with the `gltest` local sandbox runner.
 
 **Harness quirk (not a contract bug):** `VMContext.warp()` in gltest v0.29.2 updates `vm._datetime` but does not propagate the new timestamp into `gl.message_raw["datetime"]`. The `_advance()` helper in the test file patches `gl.message_raw["datetime"]` directly as a workaround.
 

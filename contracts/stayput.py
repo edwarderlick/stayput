@@ -79,12 +79,12 @@ def _now() -> int:
 # Helper: safe emit_transfer to an EOA
 # ---------------------------------------------------------------------------
 
-def _safe_pay(addr: str, amount: u256, credits: gl.storage.TreeMap[str, u256]) -> None:
+def _safe_pay(addr: Address, amount: u256, credits: gl.storage.TreeMap[Address, u256]) -> None:
     """Try to emit_transfer to EOA; on failure credit the address."""
     if amount == u256(0):
         return
     try:
-        _Recipient(Address(addr)).emit_transfer(value=amount)
+        _Recipient(addr).emit_transfer(value=amount)
     except Exception:
         prev = credits.get(addr, u256(0))
         credits[addr] = prev + amount
@@ -209,8 +209,8 @@ class StayPut(gl.contract.Contract):
     """
 
     # ---- Immutable config (set at deploy time) ----------------------------
-    seller: str
-    buyer: str
+    seller: Address
+    buyer: Address
     snapshot_url: str
     live_url: str
     hold_seconds: u256
@@ -230,7 +230,7 @@ class StayPut(gl.contract.Contract):
     frozen_snapshot_hash: str  # sha256 hex of that body
 
     # ---- Credits fallback (for failed emit_transfer) ----------------------
-    credits: gl.storage.TreeMap[str, u256]
+    credits: gl.storage.TreeMap[Address, u256]
 
     # -----------------------------------------------------------------------
     # Constructor (NOT payable - two-step: deploy -> fund_escrow)
@@ -238,7 +238,7 @@ class StayPut(gl.contract.Contract):
 
     def __init__(
         self,
-        buyer: str,
+        buyer: Address,
         snapshot_url: str,
         live_url: str,
         hold_seconds: int,
@@ -246,15 +246,14 @@ class StayPut(gl.contract.Contract):
         resolve_window_seconds: int,
         material_rubric: str,
     ) -> None:
-        seller = gl.message.sender_address
-        seller_str = str(seller)
+        seller_addr = gl.message.sender_address
 
         # --- Validate buyer ------------------------------------------------
-        buyer_str = str(Address(buyer))  # normalises / raises on bad address
-        if buyer_str == seller_str:
+        buyer_obj = buyer if hasattr(buyer, "as_bytes") else Address(buyer)
+        if str(buyer_obj) == str(seller_addr):
             raise gl.vm.UserError("buyer must differ from seller")
-        zero = "0x" + "0" * 40
-        if buyer_str == zero:
+        zero_addr = Address("0x" + "0" * 40)
+        if str(buyer_obj) == str(zero_addr):
             raise gl.vm.UserError("buyer must not be the zero address")
 
         # --- Validate URLs -------------------------------------------------
@@ -288,8 +287,8 @@ class StayPut(gl.contract.Contract):
             )
 
         # --- Persist -------------------------------------------------------
-        self.seller = seller_str
-        self.buyer = buyer_str
+        self.seller = seller_addr
+        self.buyer = buyer_obj
         self.snapshot_url = snapshot_url
         self.live_url = live_url
         self.hold_seconds = u256(hold_seconds)
@@ -314,8 +313,8 @@ class StayPut(gl.contract.Contract):
     @gl.public.write.payable
     def fund_escrow(self) -> None:
         """Fund the escrow. Only the designated buyer. Only in AWAITING_ESCROW state."""
-        caller = str(gl.message.sender_address)
-        if caller != self.buyer:
+        caller = gl.message.sender_address
+        if str(caller) != str(self.buyer):
             raise gl.vm.UserError("only the buyer may fund the escrow")
         if self.status != STATUS_AWAITING:
             raise gl.vm.UserError(
@@ -368,20 +367,18 @@ class StayPut(gl.contract.Contract):
     @gl.public.write
     def cancel(self) -> None:
         """Cancel the hold.
-        - Seller can cancel while AWAITING_ESCROW (no funds to return).
-        - Buyer can cancel while FUNDED, within the cancel_window, for a full refund.
+        Seller can cancel while AWAITING_ESCROW. Buyer can cancel while FUNDED within cancel window.
         """
-        caller = str(gl.message.sender_address)
+        caller = gl.message.sender_address
 
         if self.status == STATUS_AWAITING:
-            # Only seller may cancel an unfunded hold
-            if caller != self.seller:
+            if str(caller) != str(self.seller):
                 raise gl.vm.UserError("only seller may cancel an unfunded hold")
             self.status = STATUS_CANCELLED
             return
 
         if self.status == STATUS_FUNDED:
-            if caller != self.buyer:
+            if str(caller) != str(self.buyer):
                 raise gl.vm.UserError("only buyer may cancel a funded hold")
             now = _now()
             window_end = int(self.fund_ts) + int(self.cancel_window_seconds)
@@ -551,8 +548,8 @@ class StayPut(gl.contract.Contract):
     def get_case(self) -> dict:
         """Return all immutable and mutable contract fields."""
         return {
-            "seller": self.seller,
-            "buyer": self.buyer,
+            "seller": str(self.seller),
+            "buyer": str(self.buyer),
             "snapshot_url": self.snapshot_url,
             "live_url": self.live_url,
             "hold_seconds": int(self.hold_seconds),
@@ -582,18 +579,18 @@ class StayPut(gl.contract.Contract):
 
         if marker == MARKER_SELLER and verdict in ("UNCHANGED", "COSMETIC"):
             return {
-                "payee": self.seller,
+                "payee": str(self.seller),
                 "payee_amount_wei": deposit,
-                "refundee": self.buyer,
+                "refundee": str(self.buyer),
                 "refundee_amount_wei": 0,
                 "verdict": verdict,
                 "marker": marker,
             }
         if marker == MARKER_BUYER and verdict in ("MATERIAL_CHANGE", "FETCH_FAILED", ""):
             return {
-                "payee": self.buyer,
+                "payee": str(self.buyer),
                 "payee_amount_wei": deposit,
-                "refundee": self.seller,
+                "refundee": str(self.seller),
                 "refundee_amount_wei": 0,
                 "verdict": verdict,
                 "marker": marker,
@@ -601,9 +598,9 @@ class StayPut(gl.contract.Contract):
         # Also handle CANCELLED (verdict="") with MARKER_BUYER
         if marker == MARKER_BUYER:
             return {
-                "payee": self.buyer,
+                "payee": str(self.buyer),
                 "payee_amount_wei": deposit,
-                "refundee": self.seller,
+                "refundee": str(self.seller),
                 "refundee_amount_wei": 0,
                 "verdict": verdict,
                 "marker": marker,
@@ -619,9 +616,10 @@ class StayPut(gl.contract.Contract):
         }
 
     @gl.public.view
-    def get_credit(self, addr: str) -> int:
+    def get_credit(self, addr: Address) -> int:
         """Return credits[addr] in wei."""
-        return int(self.credits.get(addr, u256(0)))
+        addr_obj = addr if hasattr(addr, "as_bytes") else Address(addr)
+        return int(self.credits.get(addr_obj, u256(0)))
 
 
 # ---------------------------------------------------------------------------

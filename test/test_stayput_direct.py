@@ -34,15 +34,9 @@ def _mock_web(vm, snap_body: str, live_body: str) -> None:
     vm.mock_web(r"example\.com/live",     {"status": 200, "body": live_body})
 
 
-# ---------------------------------------------------------------------------
-# Address helper: gltest fixtures return bytes; contracts need 0x hex strings
-# ---------------------------------------------------------------------------
-
 def _addr(b) -> str:
-    """Convert bytes address from gltest fixture to 0x-prefixed hex string."""
     if isinstance(b, bytes):
         return "0x" + b.hex()
-    # already a string or has __str__
     s = str(b)
     if not s.startswith("0x") and all(c in "0123456789abcdefABCDEF" for c in s):
         return "0x" + s
