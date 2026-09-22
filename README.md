@@ -106,10 +106,10 @@ The **constructor rubric is authoritative for that hold**. Parties agree in writ
 | Chain ID | 61997 |
 | Explorer | [explorer-studio-dev.genlayer.com](https://explorer-studio-dev.genlayer.com/?chain=studio-devnet) |
 | Studio | [studio-dev.genlayer.com](https://studio-dev.genlayer.com) |
-| Contract | [0x3F51A5303Bc0Fa42D0d366470F3D9A04321d4aFA](https://explorer-studio-dev.genlayer.com/address/0x3F51A5303Bc0Fa42D0d366470F3D9A04321d4aFA?chain=studio-devnet) |
-| Deploy tx | [0x8433ac00c40cb0cc6381d972a7762be4b3d074a0589f20483f7c11dd89c27e63](https://explorer-studio-dev.genlayer.com/transactions/0x8433ac00c40cb0cc6381d972a7762be4b3d074a0589f20483f7c11dd89c27e63?chain=studio-devnet) |
-| Consensus | 5 / 5 validators AGREE on deploy |
-| Resolve tx | Not run live - lifecycle proven in 34 direct tests (see below) |
+| Contract | [0x6520D47f33cBeF8e00d6BF014b818bA730ADBdBd](https://explorer-studio-dev.genlayer.com/address/0x6520D47f33cBeF8e00d6BF014b818bA730ADBdBd?chain=studio-devnet) |
+| Deploy tx | [0xbc42a5d8d0cabb223d663000cab196452050f972ee0d3cc5369e339961ccd9d0](https://explorer-studio-dev.genlayer.com/transactions/0xbc42a5d8d0cabb223d663000cab196452050f972ee0d3cc5369e339961ccd9d0?chain=studio-devnet) |
+| Consensus | Deploy tx ACCEPTED |
+| Resolve tx | Not run live - lifecycle proven in 35 direct tests (see below) |
 | Second resolve | Not run live - revert proven in `TestDoubleResolve` direct test |
 
 > The smoke deploy used `0xdEaD` as buyer (buyer != seller constraint). For a real hold, deploy
@@ -127,7 +127,7 @@ The **constructor rubric is authoritative for that hold**. Parties agree in writ
 | LIVE mock | In-memory mock body (direct tests) | Varied to produce each verdict |
 
 KEEP and FAIL fixtures are defined in `test/test_stayput_integration.py`.
-All four verdicts are exercised via mocked LLM in the 34 direct tests.
+All four verdicts are exercised via mocked LLM in the 35 direct tests.
 
 ---
 
@@ -155,15 +155,29 @@ pip install genlayer-test
 
 # Direct mode - fast, in-memory, no network required
 pytest test/test_stayput_direct.py -v
-# -> 34 passed
+# -> 35 passed
 
 # Integration mode - requires funded Studio-Devnet account
 gltest test/test_stayput_integration.py --network studio_devnet -v -s
 ```
 
-**Result:** `34 passed` - all constructor validations, fund, cancel, resolve (all 4 verdicts), double-resolve revert, expire, settlement amounts, and withdraw.
+**Result:** `35 passed` - all constructor validations, fund, cancel, resolve (all 4 verdicts), double-resolve revert, expire, settlement amounts, and withdraw.
 
-**GenVM Semantic Validation (E106):** Contract passes strict `E106` Studio-Devnet semantic validation. All addresses (constructor, storage, mappings) use the native `Address` type, with safe fallbacks and explicit string-comparisons to maintain complete compatibility with the `gltest` local sandbox runner.
+**GenVM Semantic Validation (E106):** Contract passes strict `E106` Studio-Devnet semantic validation. Verified via direct RPC call to `gen_getContractSchemaForCode`. Output:
+```json
+{
+ "params": [
+  ["buyer", "address"],
+  ["snapshot_url", "string"],
+  ["live_url", "string"],
+  ["hold_seconds", "int"],
+  ["cancel_window_seconds", "int"],
+  ["resolve_window_seconds", "int"],
+  ["material_rubric", "string"]
+ ],
+ "kwparams": {}
+}
+```
 
 **Harness quirk (not a contract bug):** `VMContext.warp()` in gltest v0.29.2 updates `vm._datetime` but does not propagate the new timestamp into `gl.message_raw["datetime"]`. The `_advance()` helper in the test file patches `gl.message_raw["datetime"]` directly as a workaround.
 
@@ -183,7 +197,7 @@ gltest test/test_stayput_integration.py --network studio_devnet -v -s
 
 ```
 contracts/stayput.py              Intelligent Contract
-test/test_stayput_direct.py       34 direct tests (mock network)
+test/test_stayput_direct.py       35 direct tests (mock network)
 test/test_stayput_integration.py  Studio-Devnet integration tests
 scripts/deploy_stayput.py         Deploy script (Studio-Devnet)
 deploy/receipt.json               On-chain deploy receipt

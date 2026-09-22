@@ -20,7 +20,6 @@ Not a court. Not a bounty. Not a deliverable grader.
 Primitive: "live-page hold escrow" / "placement lock."
 """
 
-from __future__ import annotations
 import datetime
 import json
 import re
@@ -533,7 +532,7 @@ class StayPut(gl.contract.Contract):
     @gl.public.write
     def withdraw(self) -> None:
         """Pull any credits accumulated from failed emit_transfer calls."""
-        caller = str(gl.message.sender_address)
+        caller = gl.message.sender_address
         amount = self.credits.get(caller, u256(0))
         if amount == u256(0):
             raise gl.vm.UserError("no credits to withdraw")

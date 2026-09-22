@@ -35,24 +35,24 @@ StayPut-only build log. APIs browsed, fixtures used, test results, deploy hashes
 | API research | OK | Browsed live docs above |
 | stayput.py | OK | 636 lines - constructor, fund, cancel, resolve, expire, withdraw, views |
 | genvm-lint | OK | E106 fix applied - storage str fields coerced before nondet closures |
-| Direct tests | OK | 34/34 passed |
-| Studio-dev deploy | OK | 0xC49BE22b71A430a1d3FBBFf1Eb880292D74ec1D1 |
+| Direct tests | OK | 35/35 passed |
+| Studio-dev deploy | OK | 0x6520D47f33cBeF8e00d6BF014b818bA730ADBdBd |
 | README | OK | Full rewrite with verified explorer links |
-| Direct Tests | OK | 34 / 34 passed (mock network) |
+| Direct Tests | OK | 35 / 35 passed (mock network) |
 | GitHub push | OK | https://github.com/edwarderlick/stayput |
 
 ---
 
-## Studio-Dev (61997) Smoke Deploy v2 (E106-fixed)
+## Studio-Dev (61997) Smoke Deploy v3 (E106-fixed)
 
 | Detail | Value |
 |---|---|
-| Contract | 0xC49BE22b71A430a1d3FBBFf1Eb880292D74ec1D1 |
-| Deploy tx | 0xc521671e2d587faf5dc383a5b725d829fe198be1437dec128c8ce0ad8a1ccb09 |
+| Contract | 0x6520D47f33cBeF8e00d6BF014b818bA730ADBdBd |
+| Deploy tx | 0xbc42a5d8d0cabb223d663000cab196452050f972ee0d3cc5369e339961ccd9d0 |
 | Deployer | 0xA1F567B94C5FA8b370C7040a194e8F4351242283 |
 | Buyer (smoke) | 0x000000000000000000000000000000000000dEaD |
-| Explorer link | https://explorer-studio-dev.genlayer.com/address/0xC49BE22b71A430a1d3FBBFf1Eb880292D74ec1D1?chain=studio-devnet |
-| TX link | https://explorer-studio-dev.genlayer.com/transactions/0xc521671e2d587faf5dc383a5b725d829fe198be1437dec128c8ce0ad8a1ccb09?chain=studio-devnet |
+| Explorer link | https://explorer-studio-dev.genlayer.com/address/0x6520D47f33cBeF8e00d6BF014b818bA730ADBdBd?chain=studio-devnet |
+| TX link | https://explorer-studio-dev.genlayer.com/transactions/0xbc42a5d8d0cabb223d663000cab196452050f972ee0d3cc5369e339961ccd9d0?chain=studio-devnet |
 
 ## Studio-Dev (61997) Smoke Deploy v1 (superseded)
 
@@ -74,10 +74,10 @@ StayPut-only build log. APIs browsed, fixtures used, test results, deploy hashes
 
 ```
 pytest test/test_stayput_direct.py -v
-34 passed in ~2.00s
+35 passed in ~12.5s
 ```
 
-### Test cases (34 total)
+### Test cases (35 total)
 
 | Class | Tests |
 |-------|-------|
@@ -91,7 +91,7 @@ pytest test/test_stayput_direct.py -v
 | TestFrozenSnapshot | 4 - Fund stores body/hash, 404 reverts at fund, snapshot mutation ignored by resolve, live match against new snapshot refunds buyer |
 | TestExpire | 2 - expire before deadline reverts, expire after deadline refunds buyer |
 | TestSettlementAmounts | 2 - seller payout == deposit, buyer payout == deposit |
-| TestWithdraw | 2 - no credit reverts, get_credit returns 0 for unknown |
+| TestWithdraw | 3 - no credit reverts, withdraw with credit succeeds, get_credit returns 0 for unknown |
 
 ---
 

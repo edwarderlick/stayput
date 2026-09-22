@@ -447,6 +447,22 @@ class TestWithdraw:
         with direct_vm.expect_revert("no credits to withdraw"):
             contract.withdraw()
 
+    def test_withdraw_with_credit_succeeds(self, direct_vm, direct_deploy, direct_owner, direct_bob):
+        contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
+        
+        # Inject credit directly into the storage TreeMap using an already-instantiated Address
+        contract.credits[contract.buyer] = 100
+        
+        # Verify it's there
+        assert contract.get_credit(contract.buyer) == 100
+        
+        # Withdraw
+        direct_vm.sender = direct_bob
+        contract.withdraw()
+        
+        # Verify it's gone
+        assert contract.get_credit(contract.buyer) == 0
+
     def test_get_credit_returns_zero_for_unknown(self, direct_vm, direct_deploy, direct_owner, direct_bob, direct_charlie):
         contract = _deploy_default(direct_deploy, direct_bob, direct_owner)
         credit = contract.get_credit(_addr(direct_charlie))

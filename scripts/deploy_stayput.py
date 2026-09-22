@@ -72,18 +72,18 @@ def deploy():
         "chain_id": 61997,
         "explorer": f"https://explorer-studio-dev.genlayer.com/address/{contract_address}?chain=studio-devnet",
         "note": (
-            "Smoke deploy only â€” buyer is the dead address. "
+            "Smoke deploy only — buyer is the dead address. "
             "For a real hold, deploy fresh with the actual buyer address and call fund_escrow()."
         ),
     }
-    RECEIPT_FILE.write_text(json.dumps(output, indent=2))
-    print(f"[deploy] Receipt saved â†’ {RECEIPT_FILE}")
+    RECEIPT_FILE.write_text(json.dumps(output, indent=2), encoding="utf-8")
+    print(f"[deploy] Receipt saved -> {RECEIPT_FILE}")
     print(f"[deploy] Explorer: {output['explorer']}")
     print(f"[deploy] Done.")
     return contract_address
 
 def test_smoke_deploy():
-    """pytest entry point â€” called by gltest."""
+    """pytest entry point — called by gltest."""
     addr = deploy()
     assert addr.startswith("0x"), f"expected 0x-prefixed address, got: {addr}"
-    print(f"[deploy] âœ“  StayPut live at {addr}")
+    print(f"[deploy] [OK] StayPut live at {addr}")
