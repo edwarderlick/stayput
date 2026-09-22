@@ -106,8 +106,8 @@ The **constructor rubric is authoritative for that hold**. Parties agree in writ
 | Chain ID | 61997 |
 | Explorer | [explorer-studio-dev.genlayer.com](https://explorer-studio-dev.genlayer.com/?chain=studio-devnet) |
 | Studio | [studio-dev.genlayer.com](https://studio-dev.genlayer.com) |
-| Contract | [0xC49BE22b71A430a1d3FBBFf1Eb880292D74ec1D1](https://explorer-studio-dev.genlayer.com/address/0xC49BE22b71A430a1d3FBBFf1Eb880292D74ec1D1?chain=studio-devnet) |
-| Deploy tx | [0xc521671e2d587faf5dc383a5b725d829fe198be1437dec128c8ce0ad8a1ccb09](https://explorer-studio-dev.genlayer.com/transactions/0xc521671e2d587faf5dc383a5b725d829fe198be1437dec128c8ce0ad8a1ccb09?chain=studio-devnet) |
+| Contract | [0x3F51A5303Bc0Fa42D0d366470F3D9A04321d4aFA](https://explorer-studio-dev.genlayer.com/address/0x3F51A5303Bc0Fa42D0d366470F3D9A04321d4aFA?chain=studio-devnet) |
+| Deploy tx | [0x8433ac00c40cb0cc6381d972a7762be4b3d074a0589f20483f7c11dd89c27e63](https://explorer-studio-dev.genlayer.com/transactions/0x8433ac00c40cb0cc6381d972a7762be4b3d074a0589f20483f7c11dd89c27e63?chain=studio-devnet) |
 | Consensus | 5 / 5 validators AGREE on deploy |
 | Resolve tx | Not run live - lifecycle proven in 34 direct tests (see below) |
 | Second resolve | Not run live - revert proven in `TestDoubleResolve` direct test |
